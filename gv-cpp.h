@@ -1,3 +1,4 @@
+#include <fstream>
 #include <string>
 #include <vector>
 #include <map>
@@ -94,7 +95,7 @@ class graph{
             if(!attr.empty()) out+=begin+"node"+attrs+";"+end;
 
             attrs = gen_attr(edgeDefaults);
-            if(!attr.empty()) out+=begin+"edge "+attrs+";"+end;
+            if(!attr.empty()) out+=begin+"edge"+attrs+";"+end;
 
             for(int i = 0; i < nodes.size(); i++){
                 out+=begin+std::to_string(nodes[i]->id)+gen_attr(nodes[i])+";"+end;
@@ -106,4 +107,30 @@ class graph{
             return out;
         }
 
+};
+
+class Gif{
+    private:
+        std::vector<std::string> imgs;
+    public:
+        void add(std::string img){
+            imgs.push_back(img);
+        }
+        void generate(std::string output, int delay=20, std::string format="jpg", std::string graphviz="dot"){
+            if(imgs.empty()) return;
+            std::string cmd = "convert -delay " + std::to_string(delay) + " -loop 0 ";
+            for(int i = 0; i < imgs.size(); i++){
+                std::ofstream F(".tmp.gv");
+                F << imgs[i];
+                F.close();
+                system((graphviz + " -T" + format + " .tmp.gv -o .tmp-" + std::to_string(i) + "." + format).c_str());
+                system("rm .tmp.gv");
+                cmd+=" .tmp-" + std::to_string(i) + "." + format + " ";
+            }
+            cmd+=output;
+            system(cmd.c_str());
+            for(int i = 0; i < imgs.size(); i++){
+                system(("rm .tmp-" + std::to_string(i) + "." + format).c_str());
+            }
+        }
 };
